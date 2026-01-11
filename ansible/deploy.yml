@@ -1,0 +1,27 @@
+---
+- name: Deploy Secure Whisper to Kubernetes
+  hosts: local
+  gather_facts: false
+  tasks:
+    - name: Ensure k8s namespace exists
+      shell: kubectl create namespace default --dry-run=client -o yaml | kubectl apply --insecure-skip-tls-verify -f -
+
+    - name: Apply Microservices Deployment
+      shell: kubectl apply --insecure-skip-tls-verify -f /project/k8s/microservices.yaml
+
+    - name: Apply Frontend Deployment
+      shell: kubectl apply --insecure-skip-tls-verify -f /project/k8s/frontend.yaml
+
+    - name: Apply Backend Deployment (Legacy)
+      shell: kubectl apply --insecure-skip-tls-verify -f /project/k8s/backend.yaml
+      ignore_errors: true
+
+    - name: Apply Mongo
+      shell: kubectl apply --insecure-skip-tls-verify -f /project/k8s/mongo.yaml
+
+    - name: Apply Observability Stack
+      shell: kubectl apply --insecure-skip-tls-verify -f /project/k8s/observability.yaml
+
+    - name: Force restart pods
+      shell: kubectl delete pods --all --wait=false --insecure-skip-tls-verify
+      ignore_errors: true

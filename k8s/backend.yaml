@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: secure-whisper-backend:latest
+        imagePullPolicy: Never # Use local minikube image
+        ports:
+        - containerPort: 4000
+        resources:
+          requests:
+            cpu: "10m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        env:
+        - name: PORT
+          value: "4000"
+        - name: MONGODB_URI
+          value: "mongodb://mongo:27017/mingleup"
+        - name: JWT_SECRET
+          value: "k8s_secret_key_change_me_in_prod"
+        - name: ENCRYPTION_KEY
+          value: "k8s_encryption_key_32_bytes_long"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 4000
+    targetPort: 4000
+    protocol: TCP

@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    ports:
+      - "8080:80"
+    restart: always
+    depends_on:
+      - backend
+
+  backend:
+    build: ./server
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - MONGODB_URI=mongodb://mongo:27017/mingleup
+      - JWT_SECRET=docker_dev_secret_change_me
+      - ENCRYPTION_KEY=docker_dev_key_32_bytes_long!!!!
+      # For browser-based apps, the browser accesses the backend directly, not via the internal docker network.
+      # So VITE_API_URL in the frontend build should point to the public URL of the backend.
+      # Since we map backend:4000 to localhost:4000, localhost:4000 is correct for local dev.
+    depends_on:
+      - mongo
+    restart: always
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017" # Exposed for local debugging tools if needed
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  mongo-data:
+  grafana-data:

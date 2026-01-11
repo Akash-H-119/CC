@@ -1,0 +1,230 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: nginx:alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4001
+        env:
+        - name: PORT
+          value: "4001"
+        - name: MONGODB_URI
+          value: "mongodb://mongo:27017/mingleup"
+        - name: JWT_SECRET
+          value: "k8s_secret_key_change_me_in_prod"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+spec:
+  selector:
+    app: auth
+  ports:
+  - port: 4001
+    targetPort: 4001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      containers:
+      - name: user
+        image: nginx:alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4002
+        env:
+        - name: PORT
+          value: "4002"
+        - name: MONGODB_URI
+          value: "mongodb://mongo:27017/mingleup"
+        - name: JWT_SECRET
+          value: "k8s_secret_key_change_me_in_prod"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+spec:
+  selector:
+    app: user
+  ports:
+  - port: 4002
+    targetPort: 4002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: friend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: friend
+  template:
+    metadata:
+      labels:
+        app: friend
+    spec:
+      containers:
+      - name: friend
+        image: nginx:alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4003
+        env:
+        - name: PORT
+          value: "4003"
+        - name: MONGODB_URI
+          value: "mongodb://mongo:27017/mingleup"
+        - name: JWT_SECRET
+          value: "k8s_secret_key_change_me_in_prod"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: friend
+spec:
+  selector:
+    app: friend
+  ports:
+  - port: 4003
+    targetPort: 4003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: message
+  template:
+    metadata:
+      labels:
+        app: message
+    spec:
+      containers:
+      - name: message
+        image: nginx:alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4004
+        env:
+        - name: PORT
+          value: "4004"
+        - name: MONGODB_URI
+          value: "mongodb://mongo:27017/mingleup"
+        - name: JWT_SECRET
+          value: "k8s_secret_key_change_me_in_prod"
+        - name: ENCRYPTION_KEY
+          value: "k8s_encryption_key_32_bytes_long"
+        - name: REALTIME_SERVICE_URL
+          value: "http://realtime:4005"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: message
+spec:
+  selector:
+    app: message
+  ports:
+  - port: 4004
+    targetPort: 4004
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realtime
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: realtime
+  template:
+    metadata:
+      labels:
+        app: realtime
+    spec:
+      containers:
+      - name: realtime
+        image: nginx:alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4005
+        env:
+        - name: PORT
+          value: "4005"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: realtime
+spec:
+  selector:
+    app: realtime
+  ports:
+  - port: 4005
+    targetPort: 4005
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        image: nginx:alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4000
+        env:
+        - name: PORT
+          value: "4000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: gateway
+  ports:
+  - port: 4000
+    targetPort: 4000
+  type: LoadBalancer 
